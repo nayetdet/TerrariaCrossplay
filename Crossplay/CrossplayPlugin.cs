@@ -24,15 +24,16 @@ namespace Crossplay
             { 315, "v1.4.5.2" },
             { 316, "v1.4.5.3" },
             { 317, "v1.4.5.4" },
+            { 318, "v1.4.5.5" },
         };
 
         public override string Name => "Crossplay";
 
         public override string Author => "Moneylover3246 (fork by Nayetdet)";
 
-        public override string Description => "Enables crossplay for terraria";
+        public override string Description => "Enables crossplay for Terraria";
 
-        public override Version Version => new("2.3");
+        public override Version Version => new("2.4");
 
         public CrossplayConfig Config { get; } = new();
 
@@ -49,6 +50,7 @@ namespace Crossplay
             { 315, 6145 },
             { 316, 6145 },
             { 317, 6145 },
+            { 318, 6145 },
         };
 
         public CrossplayPlugin(Main game) : base(game)
@@ -154,12 +156,13 @@ namespace Crossplay
                     case PacketTypes.ConnectRequest:
                         {
                             string clientVersion = reader.ReadString();
-                            if (clientVersion.Length != 11)
-                            {
-                                args.Handled = true;
-                                return;
-                            }
-                            if (!int.TryParse(clientVersion.AsSpan(clientVersion.Length - 3), out int versionNumber))
+                            string digits = new string(clientVersion
+                                .Reverse()
+                                .TakeWhile(char.IsDigit)
+                                .Reverse()
+                                .ToArray());
+
+                            if (!int.TryParse(digits, out int versionNumber))
                             {
                                 return;
                             }
@@ -176,9 +179,9 @@ namespace Crossplay
                             NetMessage.SendData(9, args.Msg.whoAmI, -1, NetworkText.FromLiteral("Fixing Version..."), 1);
                             byte[] connectRequest = new PacketFactory()
                                 .SetType(1)
-                                .PackString($"Terraria317")
+                                .PackString($"Terraria{Main.curRelease}")
                                 .GetByteData();
-                            Log($"Changing version of index {args.Msg.whoAmI} from {_supportedVersions[versionNumber]} => {_supportedVersions[317]}", color: ConsoleColor.Green);
+                            Log($"Changing version of index {args.Msg.whoAmI} from {_supportedVersions[versionNumber]} => {_supportedVersions[Main.curRelease]}", color: ConsoleColor.Green);
 
                             Buffer.BlockCopy(connectRequest, 0, args.Msg.readBuffer, args.Index - 3, connectRequest.Length);
                         }

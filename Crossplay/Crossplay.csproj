@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <Version>2.3</Version>
+    <Version>2.4</Version>
   </PropertyGroup>
 
   <ItemGroup>
