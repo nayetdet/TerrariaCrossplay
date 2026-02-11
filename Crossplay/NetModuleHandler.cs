@@ -8,7 +8,7 @@ namespace Crossplay
     {
         internal static void OnBroadcast(On.Terraria.Net.NetManager.orig_Broadcast_NetPacket_int orig, NetManager self, NetPacket packet, int ignoreClient)
         {
-            for (int i = 0; i <= Main.maxPlayers; i++)
+            for (int i = 0; i < Main.maxPlayers; i++)
             {
                 if (i != ignoreClient && Netplay.Clients[i].IsConnected() && !InvalidNetPacket(packet, i))
                 {
