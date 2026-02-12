@@ -5,4 +5,4 @@ Crossplay allows for cross-platform play between all 1.4.5+ versions, utlimately
 Installation is very easy; Simply insert the plugin file (`Crossplay.dll`) into the `ServerPlugins` folder of your TShock install.
 
 ## Bugs & Issues
-Bugs or other issues with this plugin should be reported as an issue to this page to myself.
+Bugs or other issues with this plugin should be reported as an issue to this page to myself. Feel free to contact my Discord (@Moneylover3246#9667) for further assistance.

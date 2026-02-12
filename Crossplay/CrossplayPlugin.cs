@@ -30,7 +30,7 @@ namespace Crossplay
 
         public override string Name => "Crossplay";
 
-        public override string Author => "Moneylover3246 (fork by Nayetdet)";
+        public override string Author => "Moneylover3246";
 
         public override string Description => "Enables crossplay for Terraria";
 
@@ -65,7 +65,7 @@ namespace Crossplay
         {
             if (!_supportedVersions.TryGetValue(Main.curRelease, out string version) || version != Main.versionNumber)
             {
-                throw new NotSupportedException("The provided version of this plugin is outdated and will not function properly. Check for any updates here: https://github.com/Nayetdet/TerrariaCrossplay");
+                throw new NotSupportedException("The provided version of this plugin is outdated and will not function properly. Check for any updates here: https://github.com/Moneylover3246/Crossplay");
             }
 
             ServerApi.Hooks.NetSendNetData.Register(this, NetModuleHandler.OnSendNetData);
@@ -129,7 +129,7 @@ namespace Crossplay
             StringBuilder sb = new StringBuilder()
                 .Append("Crossplay has been enabled & has whitelisted the following versions:\n")
                 .Append(string.Join(", ", _supportedVersions.Values))
-                .Append("\n\nIf there are any issues please report them here: https://github.com/Nayetdet/TerrariaCrossplay");
+                .Append("\n\nIf there are any issues please report them here: https://github.com/Moneylover3246/Crossplay");
 
             Console.ForegroundColor = ConsoleColor.Magenta;
             Console.WriteLine("-------------------------------------");
