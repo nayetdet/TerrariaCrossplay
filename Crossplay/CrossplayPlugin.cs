@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -19,24 +19,19 @@ namespace Crossplay
     {
         private readonly Dictionary<int, string> _supportedVersions = new()
         {
-            { 269, "v1.4.4" },
-            { 270, "v1.4.4.1" },
-            { 271, "v1.4.4.2" },
-            { 272, "v1.4.4.3" },
-            { 273, "v1.4.4.4" },
-            { 274, "v1.4.4.5" },
-            { 275, "v1.4.4.6" },
-            { 276, "v1.4.4.7" },
-            { 277, "v1.4.4.8" },
-            { 278, "v1.4.4.8.1" },
-            { 279, "v1.4.4.9" },
+            { 313, "v1.4.5.0" },
+            { 314, "v1.4.5.1" },
+            { 315, "v1.4.5.2" },
+            { 316, "v1.4.5.3" },
+            { 317, "v1.4.5.4" },
+            { 318, "v1.4.5.5" },
         };
 
         public override string Name => "Crossplay";
 
         public override string Author => "Moneylover3246";
 
-        public override string Description => "Enables crossplay for terraria";
+        public override string Description => "Enables crossplay for Terraria";
 
         public override Version Version => new("2.2");
 
@@ -50,17 +45,12 @@ namespace Crossplay
 
         public readonly Dictionary<int, int> MaxItems = new()
         {
-            { 269, 5453 },
-            { 270, 5453 },
-            { 271, 5453 },
-            { 272, 5453 },
-            { 273, 5453 },
-            { 274, 5456 },
-            { 275, 5456 },
-            { 276, 5456 },
-            { 277, 5456 },
-            { 278, 5456 },
-            { 279, 5456 },
+            { 313, 6145 },
+            { 314, 6145 },
+            { 315, 6145 },
+            { 316, 6145 },
+            { 317, 6145 },
+            { 318, 6145 },
         };
 
         public CrossplayPlugin(Main game) : base(game)
@@ -166,12 +156,13 @@ namespace Crossplay
                     case PacketTypes.ConnectRequest:
                         {
                             string clientVersion = reader.ReadString();
-                            if (clientVersion.Length != 11)
-                            {
-                                args.Handled = true;
-                                return;
-                            }
-                            if (!int.TryParse(clientVersion.AsSpan(clientVersion.Length - 3), out int versionNumber))
+                            string digits = new string(clientVersion
+                                .Reverse()
+                                .TakeWhile(char.IsDigit)
+                                .Reverse()
+                                .ToArray());
+
+                            if (!int.TryParse(digits, out int versionNumber))
                             {
                                 return;
                             }
@@ -188,9 +179,9 @@ namespace Crossplay
                             NetMessage.SendData(9, args.Msg.whoAmI, -1, NetworkText.FromLiteral("Fixing Version..."), 1);
                             byte[] connectRequest = new PacketFactory()
                                 .SetType(1)
-                                .PackString($"Terraria279")
+                                .PackString($"Terraria{Main.curRelease}")
                                 .GetByteData();
-                            Log($"Changing version of index {args.Msg.whoAmI} from {_supportedVersions[versionNumber]} => {_supportedVersions[279]}", color: ConsoleColor.Green);
+                            Log($"Changing version of index {args.Msg.whoAmI} from {_supportedVersions[versionNumber]} => {_supportedVersions[Main.curRelease]}", color: ConsoleColor.Green);
 
                             Buffer.BlockCopy(connectRequest, 0, args.Msg.readBuffer, args.Index - 3, connectRequest.Length);
                         }
@@ -202,7 +193,7 @@ namespace Crossplay
                                 return;
                             }
                             ref byte gameModeFlags = ref args.Msg.readBuffer[args.Length - 1];
-                            if (Main.GameModeInfo.IsJourneyMode)
+                            if (Main.GameMode == GameModeID.Creative)
                             {
                                 if ((gameModeFlags & 8) != 8)
                                 {
