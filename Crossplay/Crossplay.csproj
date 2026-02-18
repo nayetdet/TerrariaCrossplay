@@ -8,6 +8,6 @@
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-    <PackageReference Include="TShockAPI.TZ" Version="5.9.9-tz.4" />
+    <PackageReference Include="UnrealMultiple.TShock-Beta" Version="6.0.1" />
   </ItemGroup>
 </Project>
