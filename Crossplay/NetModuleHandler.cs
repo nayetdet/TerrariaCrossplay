@@ -27,13 +27,24 @@ namespace Crossplay
 
         private static bool InvalidNetPacket(NetPacket packet, int playerId)
         {
+            CrossplayPlugin plugin = CrossplayPlugin.Instance;
+            if (plugin is null || playerId < 0 || playerId >= Main.maxPlayers)
+            {
+                return false;
+            }
+
+            int clientVersion = plugin.ClientVersions[playerId];
+            if (clientVersion <= 0)
+            {
+                return false;
+            }
+
             switch (packet.Id)
             {
                 case 5:
                     {
                         var itemNetID = Unsafe.As<byte, short>(ref packet.Buffer.Data[3]); // https://unsafe.as/
-                        
-                        if (itemNetID > CrossplayPlugin.Instance.MaxItems[CrossplayPlugin.Instance.ClientVersions[playerId]])
+                        if (plugin.MaxItems.TryGetValue(clientVersion, out int maxItemId) && itemNetID > maxItemId)
                         {
                             return true;
                         }
