@@ -10,9 +10,9 @@ namespace Crossplay
         {
             for (int i = 0; i < Main.maxPlayers; i++)
             {
-                if (i != ignoreClient && Netplay.Clients[i].IsConnected() && !InvalidNetPacket(packet, i))
+                if (i != ignoreClient && Netplay.Clients[i].IsConnected())
                 {
-                    self.SendData(Netplay.Clients[i].Socket, packet);
+                    self.SendToClient(packet, i);
                 }
             }
         }
@@ -27,13 +27,7 @@ namespace Crossplay
 
         private static bool InvalidNetPacket(NetPacket packet, int playerId)
         {
-            CrossplayPlugin plugin = CrossplayPlugin.Instance;
-            if (plugin is null || playerId < 0 || playerId >= Main.maxPlayers)
-            {
-                return false;
-            }
-
-            int clientVersion = plugin.ClientVersions[playerId];
+            int clientVersion = CrossplayPlugin.Instance.ClientVersions[playerId];
             if (clientVersion <= 0)
             {
                 return false;
@@ -44,7 +38,7 @@ namespace Crossplay
                 case 5:
                     {
                         var itemNetID = Unsafe.As<byte, short>(ref packet.Buffer.Data[3]); // https://unsafe.as/
-                        if (plugin.MaxItems.TryGetValue(clientVersion, out int maxItemId) && itemNetID > maxItemId)
+                        if (CrossplayPlugin.Instance.MaxItems.TryGetValue(clientVersion, out int maxItemId) && itemNetID > maxItemId)
                         {
                             return true;
                         }
