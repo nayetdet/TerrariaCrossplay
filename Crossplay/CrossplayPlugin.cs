@@ -1,4 +1,4 @@
-﻿﻿using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -66,7 +66,6 @@ namespace Crossplay
                 throw new NotSupportedException("The provided version of this plugin is outdated and will not function properly. Check for any updates here: https://github.com/Moneylover3246/Crossplay");
             }
 
-            On.Terraria.Net.NetManager.Broadcast_NetPacket_int += NetModuleHandler.OnBroadcast;
             On.Terraria.Net.NetManager.SendToClient += NetModuleHandler.OnSendToClient;
 
             ServerApi.Hooks.GameInitialize.Register(this, OnInitialize);
@@ -98,7 +97,6 @@ namespace Crossplay
         {
             if (disposing)
             {
-                On.Terraria.Net.NetManager.Broadcast_NetPacket_int -= NetModuleHandler.OnBroadcast;
                 On.Terraria.Net.NetManager.SendToClient -= NetModuleHandler.OnSendToClient;
 
                 ServerApi.Hooks.GameInitialize.Deregister(this, OnInitialize);
