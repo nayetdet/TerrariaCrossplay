@@ -34,7 +34,7 @@ namespace Crossplay
 
         public override string Description => "Enables crossplay for Terraria";
 
-        public override Version Version => new("2.4.6");
+        public override Version Version => new("2.2");
 
         public CrossplayConfig Config { get; } = new();
 
@@ -42,7 +42,7 @@ namespace Crossplay
 
         public static CrossplayPlugin Instance { get; private set; }
 
-        public static string SavePath => Path.Combine(TShock.SavePath, "Crossplay.json");
+        public static string SfavePath => Path.Combine(TShock.SavePath, "Crossplay.json");
 
         public readonly Dictionary<int, int> MaxItems = new()
         {
