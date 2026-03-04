@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.Collections.Generic;
 using Terraria;
 using Terraria.Net;
 
@@ -6,11 +7,17 @@ namespace Crossplay
 {
     internal class NetModuleHandler
     {
+        private static readonly Dictionary<ushort, (int MinLength, int NetIdOffset)> ItemNetIdPackets = new()
+        {
+            { 5, (11, 9) },   // PlayerSlot
+            { 21, (27, 25) }, // UpdateItemDrop
+        };
+
         internal static void OnBroadcast(On.Terraria.Net.NetManager.orig_Broadcast_NetPacket_int orig, NetManager self, NetPacket packet, int ignoreClient)
         {
             for (int i = 0; i < Main.maxPlayers; i++)
             {
-                if (i != ignoreClient && Netplay.Clients[i].IsConnected())
+                if (i != ignoreClient)
                 {
                     self.SendToClient(packet, i);
                 }
@@ -19,7 +26,13 @@ namespace Crossplay
 
         internal static void OnSendToClient(On.Terraria.Net.NetManager.orig_SendToClient orig, NetManager self, NetPacket packet, int playerId)
         {
-            if (!InvalidNetPacket(packet, playerId))
+            if (playerId < 0 || playerId >= Main.maxPlayers)
+            {
+                return;
+            }
+
+            RemoteClient client = Netplay.Clients[playerId];
+            if (client.IsConnected() && !InvalidNetPacket(packet, playerId))
             {
                 orig(self, packet, playerId);
             }
@@ -27,24 +40,38 @@ namespace Crossplay
 
         private static bool InvalidNetPacket(NetPacket packet, int playerId)
         {
-            int clientVersion = CrossplayPlugin.Instance.ClientVersions[playerId];
+            CrossplayPlugin plugin = CrossplayPlugin.Instance;
+            if (plugin is null || playerId < 0 || playerId >= Main.maxPlayers)
+            {
+                return false;
+            }
+
+            int clientVersion = plugin.ClientVersions[playerId];
             if (clientVersion <= 0)
             {
                 return false;
             }
 
-            switch (packet.Id)
+            if (ItemNetIdPackets.TryGetValue(packet.Id, out var itemNetIdPacket))
             {
-                case 5:
-                    {
-                        var itemNetID = Unsafe.As<byte, short>(ref packet.Buffer.Data[3]); // https://unsafe.as/
-                        if (CrossplayPlugin.Instance.MaxItems.TryGetValue(clientVersion, out int maxItemId) && itemNetID > maxItemId)
-                        {
-                            return true;
-                        }
-                    }
-                    break;
+                if (packet.Buffer?.Data is null)
+                {
+                    return false;
+                }
+
+                byte[] data = packet.Buffer.Data;
+                if (packet.Length < itemNetIdPacket.MinLength || data.Length < itemNetIdPacket.NetIdOffset + 2)
+                {
+                    return false;
+                }
+
+                short itemNetID = BitConverter.ToInt16(data, itemNetIdPacket.NetIdOffset);
+                if (plugin.MaxItems.TryGetValue(clientVersion, out int maxItemId) && itemNetID > maxItemId)
+                {
+                    return true;
+                }
             }
+
             return false;
         }
     }
