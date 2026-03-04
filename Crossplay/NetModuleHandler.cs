@@ -13,17 +13,6 @@ namespace Crossplay
             { 21, (27, 25) }, // UpdateItemDrop
         };
 
-        internal static void OnBroadcast(On.Terraria.Net.NetManager.orig_Broadcast_NetPacket_int orig, NetManager self, NetPacket packet, int ignoreClient)
-        {
-            for (int i = 0; i < Main.maxPlayers; i++)
-            {
-                if (i != ignoreClient)
-                {
-                    self.SendToClient(packet, i);
-                }
-            }
-        }
-
         internal static void OnSendToClient(On.Terraria.Net.NetManager.orig_SendToClient orig, NetManager self, NetPacket packet, int playerId)
         {
             if (playerId < 0 || playerId >= Main.maxPlayers)

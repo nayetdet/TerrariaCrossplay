@@ -33,7 +33,7 @@ namespace Crossplay
 
         public override string Description => "Enables crossplay for Terraria";
 
-        public override Version Version => new("2.4.1");
+        public override Version Version => new("2.4.3");
 
         public CrossplayConfig Config { get; } = new();
 
@@ -66,7 +66,6 @@ namespace Crossplay
                 throw new NotSupportedException("The provided version of this plugin is outdated and will not function properly. Check for any updates here: https://github.com/Nayetdet/TerrariaCrossplay");
             }
 
-            On.Terraria.Net.NetManager.Broadcast_NetPacket_int += NetModuleHandler.OnBroadcast;
             On.Terraria.Net.NetManager.SendToClient += NetModuleHandler.OnSendToClient;
 
             ServerApi.Hooks.GameInitialize.Register(this, OnInitialize);
@@ -98,7 +97,6 @@ namespace Crossplay
         {
             if (disposing)
             {
-                On.Terraria.Net.NetManager.Broadcast_NetPacket_int -= NetModuleHandler.OnBroadcast;
                 On.Terraria.Net.NetManager.SendToClient -= NetModuleHandler.OnSendToClient;
 
                 ServerApi.Hooks.GameInitialize.Deregister(this, OnInitialize);
