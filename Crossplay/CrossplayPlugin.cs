@@ -52,7 +52,7 @@ namespace Crossplay
             { 316, 6145 },
             { 317, 6145 },
             { 318, 6145 },
-            { 318, 6145 },
+            { 319, 6145 },
         };
 
         public CrossplayPlugin(Main game) : base(game)
