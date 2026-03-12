@@ -3,11 +3,11 @@
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <Version>2.4.1</Version>
+    <Version>2.4.5</Version>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-    <PackageReference Include="UnrealMultiple.TShock-Beta" Version="6.0.1" />
+    <PackageReference Include="TShock" Version="6.1.0" />
   </ItemGroup>
 </Project>
