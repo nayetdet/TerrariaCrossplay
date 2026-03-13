@@ -53,10 +53,17 @@ jobs:
           - os: ubuntu-latest
             asset_pattern: linux-x64
             bin: TShock.Server
+            architecture: x64
+
+          - os: ubuntu-24.04-arm
+            asset_pattern: linux-arm64
+            bin: TShock.Server
+            architecture: arm64
 
           - os: windows-latest
             asset_pattern: win-x64
             bin: TShock.Server.exe
+            architecture: x64
 
     env:
       PLUGIN_ARTIFACT_DIRECTORY: plugin
@@ -76,7 +83,7 @@ jobs:
         uses: actions/setup-dotnet@v5
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
-          architecture: x64
+          architecture: ${{ matrix.architecture }}
 
       - name: Download plugin artifact
         uses: actions/download-artifact@v5
