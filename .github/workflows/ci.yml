@@ -1,0 +1,184 @@
+name: CI
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    tags:
+      - "*"
+
+env:
+  DOTNET_VERSION: 9.0.x
+  PLUGIN_ARTIFACT_NAME: crossplay-plugin
+  PLUGIN_FILE: Crossplay.dll
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      PROJECT_PATH: Crossplay/Crossplay.csproj
+      DOTNET_CONFIGURATION: Release
+      OUTPUT_DIRECTORY: Crossplay/bin/Release
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 1
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore ${{ env.PROJECT_PATH }}
+
+      - name: Build
+        run: dotnet build ${{ env.PROJECT_PATH }} --configuration ${{ env.DOTNET_CONFIGURATION }} --no-restore
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: ${{ env.PLUGIN_ARTIFACT_NAME }}
+          path: ${{ env.OUTPUT_DIRECTORY }}
+
+  test:
+    needs: build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            asset_pattern: linux-x64
+            bin: TShock.Server
+
+          - os: windows-latest
+            asset_pattern: win-x64
+            bin: TShock.Server.exe
+
+    env:
+      PLUGIN_ARTIFACT_DIRECTORY: plugin
+      PLUGIN_DIRECTORY: ServerPlugins
+      SERVER_TEST_WORLD: tests/worlds/test.wld
+      TSHOCK_REPO: Pryaxis/TShock
+      TSHOCK_ZIP_FILE: tshock.zip
+      SERVER_TIMEOUT: 25
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 1
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+          architecture: x64
+
+      - name: Download plugin artifact
+        uses: actions/download-artifact@v5
+        with:
+          name: ${{ env.PLUGIN_ARTIFACT_NAME }}
+          path: ${{ env.PLUGIN_ARTIFACT_DIRECTORY }}
+
+      - name: Download latest TShock
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          url="$(
+            curl -fsSL \
+              -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/${TSHOCK_REPO}/releases/latest" \
+            | jq -r '.assets[]?.browser_download_url' \
+            | grep -E "${{ matrix.asset_pattern }}" \
+            | grep -E 'Release\.(zip|tar|tar\.gz)$' \
+            | head -n 1
+          )"
+
+          [ -n "${url}" ] || exit 1
+          curl -fsSL "${url}" -o "${TSHOCK_ZIP_FILE}"
+
+      - name: Install TShock
+        shell: bash
+        run: |
+          unzip -o "${TSHOCK_ZIP_FILE}" -d . \
+            || tar -xf "${TSHOCK_ZIP_FILE}" -C . 2>/dev/null \
+            || tar -xzf "${TSHOCK_ZIP_FILE}" -C .
+
+          for archive in TShock-*.tar TShock-*.tar.gz; do
+            [ -f "${archive}" ] || continue
+            tar -xf "${archive}" 2>/dev/null || tar -xzf "${archive}"
+            rm -f "${archive}"
+          done
+
+      - name: Install plugin
+        shell: bash
+        run: |
+          mkdir -p "${PLUGIN_DIRECTORY}"
+          cp "${PLUGIN_ARTIFACT_DIRECTORY}"/*/"${PLUGIN_FILE}" "${PLUGIN_DIRECTORY}/"
+
+      - name: Start server
+        shell: bash
+        run: |
+          chmod +x "${{ matrix.bin }}" 2>/dev/null || true
+          timeout "${SERVER_TIMEOUT}" ./${{ matrix.bin }} \
+            -ip 127.0.0.1 \
+            -port 7777 \
+            -maxplayers 8 \
+            -world "${SERVER_TEST_WORLD}" \
+            -noupnp \
+            -autoshutdown || code=$?
+
+          code=${code:-0}
+          [ "$code" -eq 124 ] || exit 1
+
+  publish:
+    if: ${{ startsWith(github.ref, 'refs/tags/') }}
+    needs: [build, test]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    env:
+      PROJECT_NAME: Crossplay
+      PLUGIN_ARTIFACT_DIRECTORY: artifact
+      RELEASE_DIRECTORY: dist
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 1
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v5
+        with:
+          name: ${{ env.PLUGIN_ARTIFACT_NAME }}
+          path: ${{ env.PLUGIN_ARTIFACT_DIRECTORY }}
+
+      - id: assets
+        name: Set up release assets
+        shell: bash
+        run: |
+          mkdir -p "${RELEASE_DIRECTORY}"
+          cp "${PLUGIN_ARTIFACT_DIRECTORY}"/*/"${PLUGIN_FILE}" "${RELEASE_DIRECTORY}/${PROJECT_NAME}.dll"
+          release_id="${GITHUB_REF_NAME//\//-}"
+
+          echo "release_id=${release_id}" >> "$GITHUB_OUTPUT"
+          cd "${RELEASE_DIRECTORY}"
+          zip "${PROJECT_NAME}-${release_id}.zip" "${PROJECT_NAME}.dll"
+
+      - name: Publish tagged release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
+          generate_release_notes: true
+          files: |
+            ${{ env.RELEASE_DIRECTORY }}/${{ env.PROJECT_NAME }}.dll
+            ${{ env.RELEASE_DIRECTORY }}/${{ env.PROJECT_NAME }}-${{ steps.assets.outputs.release_id }}.zip
