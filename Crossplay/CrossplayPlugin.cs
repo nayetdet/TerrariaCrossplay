@@ -68,7 +68,7 @@ namespace Crossplay
                 throw new NotSupportedException("The provided version of this plugin is outdated and will not function properly. Check for any updates here: https://github.com/Nayetdet/TerrariaCrossplay");
             }
 
-            On.Terraria.Net.NetManager.SendToClient += NetModuleHandler.OnSendToClient;
+            ServerApi.Hooks.NetSendNetData.Register(this, NetModuleHandler.OnSendNetData);
 
             ServerApi.Hooks.GameInitialize.Register(this, OnInitialize);
             ServerApi.Hooks.GamePostInitialize.Register(this, OnPostInitialize);
@@ -99,7 +99,7 @@ namespace Crossplay
         {
             if (disposing)
             {
-                On.Terraria.Net.NetManager.SendToClient -= NetModuleHandler.OnSendToClient;
+                ServerApi.Hooks.NetSendNetData.Deregister(this, NetModuleHandler.OnSendNetData);
 
                 ServerApi.Hooks.GameInitialize.Deregister(this, OnInitialize);
                 ServerApi.Hooks.GamePostInitialize.Deregister(this, OnPostInitialize);
