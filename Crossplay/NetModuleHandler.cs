@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Terraria;
 using Terraria.Net;
+using TerrariaApi.Server;
 
 namespace Crossplay
 {
@@ -13,17 +14,31 @@ namespace Crossplay
             { 21, (27, 25) }, // UpdateItemDrop
         };
 
-        internal static void OnSendToClient(On.Terraria.Net.NetManager.orig_SendToClient orig, NetManager self, NetPacket packet, int playerId)
+        internal static void OnSendNetData(SendNetDataEventArgs args)
         {
-            if (playerId < 0 || playerId >= Main.maxPlayers)
+            if (args.Handled)
             {
                 return;
             }
 
-            RemoteClient client = Netplay.Clients[playerId];
-            if (client.IsConnected() && !InvalidNetPacket(packet, playerId))
+            int playerId = -1;
+            for (int i = 0; i < Main.maxPlayers; i++)
             {
-                orig(self, packet, playerId);
+                if (Netplay.Clients[i].Socket == args.socket)
+                {
+                    playerId = i;
+                    break;
+                }
+            }
+
+            if (playerId < 0)
+            {
+                return;
+            }
+
+            if (InvalidNetPacket(args.packet, playerId))
+            {
+                args.Handled = true;
             }
         }
 
