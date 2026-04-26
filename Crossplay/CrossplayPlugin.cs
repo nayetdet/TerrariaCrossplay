@@ -42,7 +42,7 @@ namespace Crossplay
 
         public static CrossplayPlugin Instance { get; private set; }
 
-        public static string SfavePath => Path.Combine(TShock.SavePath, "Crossplay.json");
+        public static string SavePath => Path.Combine(TShock.SavePath, "Crossplay.json");
 
         public readonly Dictionary<int, int> MaxItems = new()
         {
