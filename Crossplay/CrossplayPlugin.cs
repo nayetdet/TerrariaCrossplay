@@ -26,8 +26,8 @@ namespace Crossplay
             { 317, "v1.4.5.4" },
             { 318, "v1.4.5.5" },
             { 319, "v1.4.5.6" },
-            { 320, "v1.4.5.7 "},
-            { 321, "v1.4.5.8" }
+            { 325, "v1.4.5.7 "},
+            { 326, "v1.4.5.8" }
         };
 
         public override string Name => "Crossplay";
@@ -55,8 +55,8 @@ namespace Crossplay
             { 317, 6145 },
             { 318, 6145 },
             { 319, 6145 },
-            { 320, 6145 },
-            { 321, 6145 }
+            { 325, 6145 },
+            { 326, 6145 }
         };
 
         public CrossplayPlugin(Main game) : base(game)
@@ -67,7 +67,7 @@ namespace Crossplay
 
         public override void Initialize()
         {
-            if (!_supportedVersions.TryGetValue(Main.curRelease, out string version) || version != Main.versionNumber)
+            if (!_supportedVersions.ContainsKey(Main.curRelease) || !_supportedVersions.ContainsValue(Main.versionNumber))
             {
                 throw new NotSupportedException("The provided version of this plugin is outdated and will not function properly. Check for any updates here: https://github.com/Nayetdet/TerrariaCrossplay");
             }
