@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-    <PackageReference Include="TShock" Version="6.1.0" />
+    <PackageReference Include="TShock" Version="6.2.1" />
+    <PackageReference Include="TSAPI" Version="6.2.1" />
   </ItemGroup>
 </Project>
