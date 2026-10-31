@@ -69,7 +69,7 @@ namespace Crossplay
                     return false;
                 }
 
-                short itemNetID = BitConverter.ToInt16(data, itemNetIdPacket.NetIdOffset);
+                ushort itemNetID = BitConverter.ToUInt16(data, itemNetIdPacket.NetIdOffset);
                 if (plugin.MaxItems.TryGetValue(clientVersion, out int maxItemId) && itemNetID > maxItemId)
                 {
                     return true;
